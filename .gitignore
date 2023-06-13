@@ -1,2 +1,2 @@
 *.zip
-images/
+__pycache__/
