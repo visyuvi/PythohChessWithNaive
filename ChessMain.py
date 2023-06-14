@@ -2,6 +2,8 @@
 file for user input
 """
 import pygame as p
+
+import ChessEngine
 from ChessEngine import GameState
 
 WIDTH = HEIGHT = 512  # 400 is another option
@@ -38,11 +40,31 @@ def main():
     loadImages()
 
     running = True
+    sqSelected = ()  # no square is selected, keep track of the last click of the user (tuple: row, col)
+    playerClicks = []  # keep track of the player clicks
 
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()  # (x,y) location of the mouse
+                col = location[0] // SQ_SIZE
+                row = location[1] // SQ_SIZE
+
+                if sqSelected == (row, col):
+                    sqSelected = ()
+                    playerClicks = []  # clear player clicks
+                else:
+                    sqSelected = (row, col)
+                    playerClicks.append(sqSelected)
+
+                if len(playerClicks) == 2:  # after second click
+                    move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                    print(move.getChessNotation())
+                    gs.makeMove(move)
+                    sqSelected = ()  # reset user clicks
+                    playerClicks = []
 
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
