@@ -133,7 +133,23 @@ class GameState:
     '''
 
     def getBishopMoves(self, r, c, moves):
-        pass
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]  # up-left, up-right ,down-left, down-right
+        enemyColor = "b" if self.whiteToMove else "w"
+        for d in directions:
+            for i in range(1, 8):
+                endRow = r + d[0] * i
+                endCol = c + d[1] * i
+                if 0 <= endRow < 8 and 0 <= endCol < 8:
+                    endPiece = self.board[endRow][endCol]
+                    if endPiece == "--":  # empty space valid
+                        moves.append(Move((r, c), (endRow, endCol), self.board))
+                    elif endPiece[0] == enemyColor:  # enemy piece valid
+                        moves.append(Move((r, c), (endRow, endCol), self.board))
+                        break
+                    else:
+                        break
+                else:
+                    break
 
     '''
     Get all the Queen moves for the queen located at r,c  and add these to the list 
