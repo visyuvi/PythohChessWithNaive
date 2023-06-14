@@ -22,6 +22,8 @@ class GameState:
 
         self.whiteToMove = True
         self.moveLog = []
+        self.whiteKingLocation = (7,4)
+        self.blackKingLocation = (0, 4)
 
     '''
     Takes a move as a parameter  and executes it (this will not work for castling, pawn promotion and en-passant 
@@ -33,6 +35,12 @@ class GameState:
         self.moveLog.append(move)  # to undo later or to  keep history of the moves
         self.whiteToMove = not self.whiteToMove  # swap players
 
+        # update the Kings' location
+        if move.pieceMoved == 'wK':
+            self.whiteKingLocation = (move.endRow, move.endCol)
+        elif move.pieceMoved == 'bK':
+            self.blackKingLocation = (move.endRow, move.endCol)
+
     '''
     Undo the last move made
     '''
@@ -43,6 +51,12 @@ class GameState:
             self.board[move.startRow][move.startCol] = move.pieceMoved
             self.board[move.endRow][move.endCol] = move.pieceCaptured
             self.whiteToMove = not self.whiteToMove  # switch turns back
+
+            # update the Kings' location
+            if move.pieceMoved == 'wK':
+                self.whiteKingLocation = (move.startRow, move.startCol)
+            elif move.pieceMoved == 'bK':
+                self.blackKingLocation = (move.startRow, move.startCol)
 
     '''
     All moves considering checks
