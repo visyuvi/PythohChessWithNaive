@@ -22,8 +22,11 @@ class GameState:
 
         self.whiteToMove = True
         self.moveLog = []
-        self.whiteKingLocation = (7,4)
+        self.whiteKingLocation = (7, 4)
         self.blackKingLocation = (0, 4)
+        self.checkMate = False
+        self.staleMate = False
+
 
     '''
     Takes a move as a parameter  and executes it (this will not work for castling, pawn promotion and en-passant 
@@ -63,7 +66,53 @@ class GameState:
     '''
 
     def getValidMoves(self):
-        return self.getAllPossibleMoves()  # not considering checks as of now
+        # 1) Generate all possible moves
+        moves = self.getAllPossibleMoves()
+        # 2) For each move, make the move
+        for i in range(len(moves) - 1, -1, -1):  # when removing from a list go backwards through that list
+            self.makeMove(moves[i])
+        # 3) generate all opponent's moves
+        # 4) For each of opponent's movies see, if they attack  your kind
+            self.whiteToMove = not self.whiteToMove  # switch turn back
+            if self.inCheck():
+                # 5) If they do attack your king, it's not a valid move
+                moves.remove(moves[i])
+            self.whiteToMove = not self.whiteToMove  # switch turn back
+            self.undoMove()
+
+        if len(moves) == 0:  # either checkmate or stalemate
+            if self.inCheck():
+                self.checkMate = True
+            else:
+                self.staleMate = True
+        else:
+            self.checkMate = False
+            self.checkMate = False
+
+        return moves
+
+    '''
+    Determine if the current player is in check
+    '''
+
+    def inCheck(self):
+        if self.whiteToMove:
+            return self.squareUnderAttack(self.whiteKingLocation[0], self.whiteKingLocation[1])
+        else:
+            return self.squareUnderAttack(self.blackKingLocation[0], self.blackKingLocation[1])
+
+    '''
+    Determine if the enemy can attack the square r,c 
+    '''
+
+    def squareUnderAttack(self, r, c):
+        self.whiteToMove = not self.whiteToMove # switch to opponent's turn
+        oppMoves = self.getAllPossibleMoves()
+        self.whiteToMove = not self.whiteToMove  # switch turn back
+        for move in oppMoves:
+            if move.endRow == r and move.endCol == c:  # square is under attack
+                return True
+        return False
 
     '''
     All moves without considering checks
@@ -178,7 +227,7 @@ class GameState:
     '''
 
     def getQueenMoves(self, r, c, moves):
-        self.getRookMoves(r,c,moves)
+        self.getRookMoves(r, c, moves)
         self.getBishopMoves(r, c, moves)
 
     '''
