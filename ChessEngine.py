@@ -77,14 +77,28 @@ class GameState:
                 if r == 6 and self.board[r - 2][c] == "--":
                     moves.append(Move((r, c), (r - 2, c), self.board))
 
-            if c - 1 >= 0:
+            if c - 1 >= 0:  # capture to the left
                 if self.board[r - 1][c - 1][0] == 'b':  # enemy piece to capture
                     moves.append(Move((r, c), (r - 1, c - 1), self.board))
-            if c + 1 <= 7:
+            if c + 1 <= 7:  # capture to the right
                 if self.board[r - 1][c + 1][0] == 'b':  # enemy piece to capture
                     moves.append(Move((r, c), (r - 1, c + 1), self.board))
         else:
-            pass
+            if self.board[r + 1][c] == "--":  # 1 square pawn advance
+                moves.append(Move((r, c), (r + 1, c), self.board))
+                if r == 1  and self.board[r + 2][c] == "--":
+                    moves.append(Move((r, c), (r + 2, c), self.board))
+
+            if c - 1 >= 0:  # capture to the left
+                if self.board[r + 1][c - 1][0] == 'w':  # enemy piece to capture
+                    moves.append(Move((r, c), (r + 1, c - 1), self.board))
+            if c + 1 <= 7:  # capture to the right
+                if self.board[r + 1][c + 1][0] == 'w':  # enemy piece to capture
+                    moves.append(Move((r, c), (r + 1, c + 1), self.board))
+
+        # add pawn promotions later
+
+
 
     '''
     Get all the rook moves for the rook located at r,c  and add these to the list 
