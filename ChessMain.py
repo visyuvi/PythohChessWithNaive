@@ -3,7 +3,8 @@ file for user input
 """
 import pygame as p
 
-import ChessEngine, SmartMoveFinder
+import ChessEngine
+import SmartMoveFinder
 from ChessEngine import GameState
 
 WIDTH = HEIGHT = 512  # 400 is another option
@@ -48,7 +49,7 @@ def main():
     sqSelected = ()  # no square is selected, keep track of the last click of the user (tuple: row, col)
     playerClicks = []  # keep track of the player clicks
     gameOver = False
-    playerOne = False  # If a human is playing white, then this will be true. If an AI is playing then this will be False.
+    playerOne = True   # If a human is playing white, then this will be true. If an AI is playing then this will be False.
     playerTwo = False  # Same as above  but for black
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
@@ -99,7 +100,11 @@ def main():
 
         # AI move finder
         if not gameOver and not humanTurn:
-            AIMove = SmartMoveFinder.findRandomMove(validMoves)
+            AIMove = SmartMoveFinder.findBestMove(gs, validMoves)
+            if AIMove is None:
+                print("Calling a random move")
+                AIMove = SmartMoveFinder.findRandomMove(validMoves)
+
             gs.makeMove(AIMove)
             moveMade = True
             animate = True
