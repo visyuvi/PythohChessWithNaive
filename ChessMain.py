@@ -82,10 +82,17 @@ def main():
                     gs.undoMove()
                     moveMade = True
                     animate = False
+                if e.key == p.K_r:  # reset the board when r is pressed
+                    gs = ChessEngine.GameState()
+                    validMoves = gs.getValidMoves()
+                    sqSelected = ()
+                    playerClicks = []
+                    moveMade = False
+                    animate = False
 
         if moveMade:
             if animate:
-                animateMove (gs.moveLog[-1], screen, gs.board, clock)
+                animateMove(gs.moveLog[-1], screen, gs.board, clock)
             validMoves = gs.getValidMoves()
             moveMade = False
             animate = False
@@ -174,7 +181,7 @@ def animateMove(move, screen, board, clock):
         drawBoard(screen)
         drawPieces(screen, board)
         # erase the piece moved from its ending square
-        color = colors[(move.endCol + move.endRow ) % 2]
+        color = colors[(move.endCol + move.endRow) % 2]
         endSquare = p.Rect(move.endCol * SQ_SIZE, move.endRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
         p.draw.rect(screen, color, endSquare)
 
