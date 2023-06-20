@@ -12,6 +12,8 @@ SQ_SIZE = HEIGHT // DIMENSIONS
 MAX_FPS = 15
 IMAGES = {}
 
+colors = [p.Color("white"), p.Color("gray")]
+
 """    
  Initialize a global dictionary of images. This will be called exactly once in main
 """
@@ -45,36 +47,37 @@ def main():
     running = True
     sqSelected = ()  # no square is selected, keep track of the last click of the user (tuple: row, col)
     playerClicks = []  # keep track of the player clicks
-
+    gameOver = False
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
             # mouse handler
             elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos()  # (x,y) location of the mouse
-                col = location[0] // SQ_SIZE
-                row = location[1] // SQ_SIZE
+                if not gameOver:
+                    location = p.mouse.get_pos()  # (x,y) location of the mouse
+                    col = location[0] // SQ_SIZE
+                    row = location[1] // SQ_SIZE
 
-                if sqSelected == (row, col):
-                    sqSelected = ()
-                    playerClicks = []  # clear player clicks
-                else:
-                    sqSelected = (row, col)
-                    playerClicks.append(sqSelected)
+                    if sqSelected == (row, col):
+                        sqSelected = ()
+                        playerClicks = []  # clear player clicks
+                    else:
+                        sqSelected = (row, col)
+                        playerClicks.append(sqSelected)
 
-                if len(playerClicks) == 2:  # after second click
-                    move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    print(move.getChessNotation())
-                    for i in range(len(validMoves)):
-                        if move == validMoves[i]:
-                            gs.makeMove(validMoves[i])
-                            moveMade = True
-                            animate = True
-                            sqSelected = ()  # reset user clicks
-                            playerClicks = []
-                    if not moveMade:
-                        playerClicks = [sqSelected]
+                    if len(playerClicks) == 2:  # after second click
+                        move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                        print(move.getChessNotation())
+                        for i in range(len(validMoves)):
+                            if move == validMoves[i]:
+                                gs.makeMove(validMoves[i])
+                                moveMade = True
+                                animate = True
+                                sqSelected = ()  # reset user clicks
+                                playerClicks = []
+                        if not moveMade:
+                            playerClicks = [sqSelected]
 
             # key handler
             elif e.type == p.KEYDOWN:
@@ -98,6 +101,17 @@ def main():
             animate = False
 
         drawGameState(screen, gs, validMoves, sqSelected)
+        if gs.checkmate:
+            gameOver = True
+            if gs.whiteToMove:
+                drawText(screen, 'Black wins by checkmate')
+            else:
+                drawText(screen, 'White wins by checkmate')
+
+        if gs.stalemate:
+            gameOver = True
+            drawText(screen, 'Stalemate')
+
         clock.tick(MAX_FPS)
         p.display.flip()
 
@@ -142,7 +156,6 @@ def drawGameState(screen, gs, validMoves, sqSelected):
 
 def drawBoard(screen):
     global colors
-    colors = [p.Color("white"), p.Color("gray")]
 
     for r in range(DIMENSIONS):
         for c in range(DIMENSIONS):
@@ -171,7 +184,6 @@ Animating a move
 
 def animateMove(move, screen, board, clock):
     global colors
-    coords = []  # list of coordinates that the animation will move  through
     dR = move.endRow - move.startRow
     dC = move.endCol - move.startCol
     framesPerSquare = 10  # frames to move one square
@@ -192,6 +204,16 @@ def animateMove(move, screen, board, clock):
         screen.blit(IMAGES[move.pieceMoved], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
         p.display.flip()
         clock.tick(60)
+
+
+def drawText(screen, text):
+    font = p.font.SysFont("Helvetica", 32, True, False)
+    textObject = font.render(text, False, p.Color('Gray'))
+    textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH / 2 - textObject.get_width() / 2,
+                                                    HEIGHT / 2 - textObject.get_height() / 2)
+    screen.blit(textObject, textLocation)
+    textObject = font.render(text, False, p.Color("Black"))
+    screen.blit(textObject, textLocation.move(2, 2))
 
 
 if __name__ == '__main__':
