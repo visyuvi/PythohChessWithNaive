@@ -3,7 +3,7 @@ import random
 pieceScore = {"K": 0, "Q": 10, "R": 5, "B": 3, "N": 3, "p": 1}
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 2
+DEPTH = 3
 
 '''
 Find a random move for the AI player
@@ -15,11 +15,11 @@ def findRandomMove(validMoves):
 
 
 '''
-Find best move for the AI player
+Find best move, min max without using Recursion
 '''
 
 
-def findBestMove(gs, validMoves):
+def findBestMoveMinMaxNoRecursion(gs, validMoves):
     turnMultiplier = 1 if gs.whiteToMove else -1
     opponentMinMaxScore = CHECKMATE
     bestPlayerMove = None
@@ -62,7 +62,9 @@ def findBestMove(gs, validMoves):
     nextMove = None
     random.shuffle(validMoves)
     # findMoveMinMax(gs, validMoves, DEPTH, gs.whiteToMove)
-    findMoveNegaMax(gs, validMoves, DEPTH, 1 if gs.whiteToMove else -1)
+    # findMoveNegaMax(gs, validMoves, DEPTH, 1 if gs.whiteToMove else -1)
+    findMoveNegaMaxAlphaBeta(gs, validMoves, DEPTH, -CHECKMATE, CHECKMATE, 1 if gs.whiteToMove else -1)
+
     return nextMove
 
 
@@ -118,6 +120,36 @@ def findMoveNegaMax(gs, validMoves, depth, turnMultiplier):
             if depth == DEPTH:
                 nextMove = move
         gs.undoMove()
+
+    return maxScore
+
+
+'''
+NegaMax with alpha beta pruning
+'''
+
+
+def findMoveNegaMaxAlphaBeta(gs, validMoves, depth, alpha, beta, turnMultiplier):
+    global nextMove
+    if depth == 0:
+        return turnMultiplier * scoreBoard(gs)
+
+    # move ordering - To be implemented later
+
+    maxScore = -CHECKMATE
+    for move in validMoves:
+        gs.makeMove(move)
+        nextMoves = gs.getValidMoves()
+        score = -findMoveNegaMaxAlphaBeta(gs, nextMoves, depth - 1, -beta, -alpha, -turnMultiplier)
+        if score > maxScore:
+            maxScore = score
+            if depth == DEPTH:
+                nextMove = move
+        gs.undoMove()
+        if maxScore > alpha:  # pruning happens
+            alpha = maxScore
+        if alpha >= beta:
+            break
 
     return maxScore
 
