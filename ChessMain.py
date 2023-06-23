@@ -50,11 +50,11 @@ def main():
     playerClicks = []  # keep track of the player clicks
     gameOver = False
     playerOne = True  # If a human is playing white, then this will be true. If an AI is playing then this will be False.
-    playerTwo = False  # Same as above  but for black
+    playerTwo = True  # Same as above  but for black
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
 
-        for e in p.event.get():
+        for e in p.event.get(): 
             if e.type == p.QUIT:
                 running = False
             # mouse handler
