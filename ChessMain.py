@@ -7,9 +7,12 @@ import ChessEngine
 import SmartMoveFinder
 from ChessEngine import GameState
 
-WIDTH = HEIGHT = 512  # 400 is another option
+BOARD_WIDTH = BOARD_HEIGHT = 512  # 400 is another option
+MOVE_LOG_PANEL_WIDTH = 250
+MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT
+
 DIMENSIONS = 8  # dimension of  a chess board are 8x8
-SQ_SIZE = HEIGHT // DIMENSIONS
+SQ_SIZE = BOARD_HEIGHT // DIMENSIONS
 MAX_FPS = 15
 IMAGES = {}
 
@@ -34,7 +37,7 @@ The main  driver for our code. This will handle user input and update the graphi
 
 def main():
     p.init()
-    screen = p.display.set_mode((WIDTH, HEIGHT))
+    screen = p.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT))
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     gs = GameState()
@@ -51,6 +54,7 @@ def main():
     gameOver = False
     playerOne = True  # If a human is playing white, then this will be true. If an AI is playing then this will be False.
     playerTwo = True  # Same as above  but for black
+    moveLogFont = p.font.SysFont("Arial", 12, False, False)
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
 
@@ -64,7 +68,7 @@ def main():
                     col = location[0] // SQ_SIZE
                     row = location[1] // SQ_SIZE
 
-                    if sqSelected == (row, col):
+                    if sqSelected == (row, col) or col >= 8:
                         sqSelected = ()
                         playerClicks = []  # clear player clicks
                     else:
@@ -118,7 +122,7 @@ def main():
             moveMade = False
             animate = False
 
-        drawGameState(screen, gs, validMoves, sqSelected)
+        drawGameState(screen, gs, validMoves, sqSelected, moveLogFont)
         if gs.checkmate or gs.stalemate:
             gameOver = True
             text = 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate'
@@ -133,10 +137,11 @@ Responsible for all the graphics withing a current game states
 '''
 
 
-def drawGameState(screen, gs, validMoves, sqSelected):
+def drawGameState(screen, gs, validMoves, sqSelected, moveLogFont):
     drawBoard(screen)  # draw Squares on the board
     highlightSquares(screen, gs, validMoves, sqSelected)
     drawPieces(screen, gs.board)  # to draw pieces on top of those squares
+    drawMoveLog(screen, gs, moveLogFont)
 
 
 '''
@@ -190,6 +195,28 @@ def drawPieces(screen, board):
 
 
 '''
+Draws the move log
+'''
+
+
+def drawMoveLog(screen, gs, font):
+    moveLogRect = p.Rect(BOARD_WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
+    p.draw.rect(screen, p.Color("black"), moveLogRect)
+    moveLog = gs.moveLog
+    moveTexts = moveLog  # modify this later
+    padding = 5
+    lineSpacing = 5
+    textY = padding
+    for i in range(len(moveTexts)):
+        text = moveTexts[i].getChessNotation()
+        textObject = font.render(text, True, p.Color('white'))
+        textLocation = moveLogRect.move(padding, textY)
+        screen.blit(textObject, textLocation)
+        textY += textObject.get_height() + lineSpacing
+
+
+
+'''
 Animating a move
 '''
 
@@ -226,8 +253,8 @@ def animateMove(move, screen, board, clock):
 def drawEndGameText(screen, text):
     font = p.font.SysFont("Helvetica", 32, True, False)
     textObject = font.render(text, False, p.Color('Gray'))
-    textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH / 2 - textObject.get_width() / 2,
-                                                    HEIGHT / 2 - textObject.get_height() / 2)
+    textLocation = p.Rect(0, 0, BOARD_WIDTH, BOARD_HEIGHT).move(BOARD_WIDTH / 2 - textObject.get_width() / 2,
+                                                                BOARD_HEIGHT / 2 - textObject.get_height() / 2)
     screen.blit(textObject, textLocation)
     textObject = font.render(text, False, p.Color("Black"))
     screen.blit(textObject, textLocation.move(2, 2))
