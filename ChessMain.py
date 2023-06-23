@@ -210,16 +210,21 @@ def animateMove(move, screen, board, clock):
         r, c = (move.startRow + dR * frame / frameCount, move.startCol + dC * frame / frameCount)
         drawBoard(screen)
         drawPieces(screen, board)
-        # erase the piece moved from its ending square
+        # erase the pieceMoved from its ending square
         color = colors[(move.endCol + move.endRow) % 2]
         endSquare = p.Rect(move.endCol * SQ_SIZE, move.endRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
         p.draw.rect(screen, color, endSquare)
 
         # draw captured piece onto rectangle
         if move.pieceCaptured != '--':
-            screen.blit(IMAGES[move.pieceMoved], endSquare)
+            if move.isEnpassantMove:
+                enPassantRow = move.endRow + 1  if move.pieceCaptured[0] == 'b' else move.endRow -1
+                endSquare = p.Rect(move.endCol * SQ_SIZE, enPassantRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
+            screen.blit(IMAGES[move.pieceCaptured], endSquare)
+
         # draw moving piece
-        screen.blit(IMAGES[move.pieceMoved], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+        if move.pieceMoved != "--":
+            screen.blit(IMAGES[move.pieceMoved], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
         p.display.flip()
         clock.tick(60)
 
