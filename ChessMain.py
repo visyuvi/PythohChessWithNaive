@@ -54,7 +54,7 @@ def main():
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
 
-        for e in p.event.get(): 
+        for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
             # mouse handler
@@ -119,41 +119,13 @@ def main():
             animate = False
 
         drawGameState(screen, gs, validMoves, sqSelected)
-        if gs.checkmate:
+        if gs.checkmate or gs.stalemate:
             gameOver = True
-            if gs.whiteToMove:
-                drawText(screen, 'Black wins by checkmate')
-            else:
-                drawText(screen, 'White wins by checkmate')
-
-        if gs.stalemate:
-            gameOver = True
-            drawText(screen, 'Stalemate')
+            text = 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate'
+            drawEndGameText(screen, text)
 
         clock.tick(MAX_FPS)
         p.display.flip()
-
-
-'''
-Highlight square selected and moves for piece selected 
-'''
-
-
-def highlightSquares(screen, gs, validMoves, sqSelected):
-    if sqSelected != ():
-        r, c = sqSelected
-        if gs.board[r][c][0] == ('w' if gs.whiteToMove else 'b'):  # sqSelected is a piece that can be moved
-            # highlight the selected square
-            s = p.Surface((SQ_SIZE, SQ_SIZE))
-            s.set_alpha(100)  # transparency value -> 0 - transparent, 255 opaque
-            s.fill(p.Color('blue'))
-            screen.blit(s, (c * SQ_SIZE, r * SQ_SIZE))
-
-            # highlight moves from that square
-            s.fill(p.Color('yellow'))
-            for move in validMoves:
-                if move.startRow == r and move.startCol == c:
-                    screen.blit(s, (move.endCol * SQ_SIZE, move.endRow * SQ_SIZE))
 
 
 '''
@@ -179,6 +151,28 @@ def drawBoard(screen):
         for c in range(DIMENSIONS):
             color = colors[((r + c) % 2)]
             p.draw.rect(screen, color, p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+
+'''
+Highlight square selected and moves for piece selected 
+'''
+
+
+def highlightSquares(screen, gs, validMoves, sqSelected):
+    if sqSelected != ():
+        r, c = sqSelected
+        if gs.board[r][c][0] == ('w' if gs.whiteToMove else 'b'):  # sqSelected is a piece that can be moved
+            # highlight the selected square
+            s = p.Surface((SQ_SIZE, SQ_SIZE))
+            s.set_alpha(100)  # transparency value -> 0 - transparent, 255 opaque
+            s.fill(p.Color('blue'))
+            screen.blit(s, (c * SQ_SIZE, r * SQ_SIZE))
+
+            # highlight moves from that square
+            s.fill(p.Color('yellow'))
+            for move in validMoves:
+                if move.startRow == r and move.startCol == c:
+                    screen.blit(s, (move.endCol * SQ_SIZE, move.endRow * SQ_SIZE))
 
 
 '''
@@ -218,7 +212,7 @@ def animateMove(move, screen, board, clock):
         # draw captured piece onto rectangle
         if move.pieceCaptured != '--':
             if move.isEnpassantMove:
-                enPassantRow = move.endRow + 1  if move.pieceCaptured[0] == 'b' else move.endRow -1
+                enPassantRow = move.endRow + 1 if move.pieceCaptured[0] == 'b' else move.endRow - 1
                 endSquare = p.Rect(move.endCol * SQ_SIZE, enPassantRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
             screen.blit(IMAGES[move.pieceCaptured], endSquare)
 
@@ -229,7 +223,7 @@ def animateMove(move, screen, board, clock):
         clock.tick(60)
 
 
-def drawText(screen, text):
+def drawEndGameText(screen, text):
     font = p.font.SysFont("Helvetica", 32, True, False)
     textObject = font.render(text, False, p.Color('Gray'))
     textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH / 2 - textObject.get_width() / 2,
