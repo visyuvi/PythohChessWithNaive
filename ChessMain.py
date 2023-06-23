@@ -203,12 +203,23 @@ def drawMoveLog(screen, gs, font):
     moveLogRect = p.Rect(BOARD_WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
     p.draw.rect(screen, p.Color("black"), moveLogRect)
     moveLog = gs.moveLog
-    moveTexts = moveLog  # modify this later
+    moveTexts = []
+    for i in range(0, len(moveLog),2):
+        moveString = str(i//2 + 1) + ". " + moveLog[i].getChessNotation() + " "
+        if i+1 < len(moveLog):  # make sure black made a move
+            moveString += moveLog[i+1].getChessNotation()
+        moveTexts.append(moveString)
+
+    movesPerRow = 3
     padding = 5
     lineSpacing = 5
     textY = padding
-    for i in range(len(moveTexts)):
-        text = moveTexts[i].getChessNotation()
+    for i in range(0, len(moveTexts), movesPerRow):
+        text = ""
+        for j in range(movesPerRow):
+            if i + j < len(moveTexts):
+                text += moveTexts[i+j] + " "
+
         textObject = font.render(text, True, p.Color('white'))
         textLocation = moveLogRect.move(padding, textY)
         screen.blit(textObject, textLocation)
