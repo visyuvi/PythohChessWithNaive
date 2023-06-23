@@ -52,9 +52,10 @@ def main():
     sqSelected = ()  # no square is selected, keep track of the last click of the user (tuple: row, col)
     playerClicks = []  # keep track of the player clicks
     gameOver = False
-    playerOne = True  # If a human is playing white, then this will be true. If an AI is playing then this will be False.
+    playerOne = True  # If a human is playing white, then this will be true. If an AI is playing then this will be
+    # False.
     playerTwo = True  # Same as above  but for black
-    moveLogFont = p.font.SysFont("Arial", 12, False, False)
+    moveLogFont = p.font.SysFont("Arial", 14, False, False)
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
 
@@ -125,7 +126,8 @@ def main():
         drawGameState(screen, gs, validMoves, sqSelected, moveLogFont)
         if gs.checkmate or gs.stalemate:
             gameOver = True
-            text = 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate'
+            text = 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by ' \
+                                                                                                     'checkmate'
             drawEndGameText(screen, text)
 
         clock.tick(MAX_FPS)
@@ -204,10 +206,10 @@ def drawMoveLog(screen, gs, font):
     p.draw.rect(screen, p.Color("black"), moveLogRect)
     moveLog = gs.moveLog
     moveTexts = []
-    for i in range(0, len(moveLog),2):
-        moveString = str(i//2 + 1) + ". " + moveLog[i].getChessNotation() + " "
-        if i+1 < len(moveLog):  # make sure black made a move
-            moveString += moveLog[i+1].getChessNotation()
+    for i in range(0, len(moveLog), 2):
+        moveString = str(i//2 + 1) + ". " + str(moveLog[i]) + " "
+        if i + 1 < len(moveLog):  # make sure black made a move
+            moveString += str(moveLog[i + 1])
         moveTexts.append(moveString)
 
     movesPerRow = 3
@@ -218,13 +220,12 @@ def drawMoveLog(screen, gs, font):
         text = ""
         for j in range(movesPerRow):
             if i + j < len(moveTexts):
-                text += moveTexts[i+j] + " "
+                text += moveTexts[i + j] + " "
 
         textObject = font.render(text, True, p.Color('white'))
         textLocation = moveLogRect.move(padding, textY)
         screen.blit(textObject, textLocation)
         textY += textObject.get_height() + lineSpacing
-
 
 
 '''
