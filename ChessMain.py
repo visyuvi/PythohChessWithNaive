@@ -54,7 +54,7 @@ def main():
     gameOver = False
     playerOne = True  # If a human is playing white, then this will be true. If an AI is playing then this will be
     # False.
-    playerTwo = True  # Same as above  but for black
+    playerTwo = False  # Same as above  but for black
     moveLogFont = p.font.SysFont("Arial", 14, False, False)
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
