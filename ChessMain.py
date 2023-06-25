@@ -6,6 +6,7 @@ import pygame as p
 import ChessEngine
 import SmartMoveFinder
 from ChessEngine import GameState
+from multiprocessing import Process, Queue
 
 BOARD_WIDTH = BOARD_HEIGHT = 512  # 400 is another option
 MOVE_LOG_PANEL_WIDTH = 250
@@ -36,6 +37,7 @@ The main  driver for our code. This will handle user input and update the graphi
 
 
 def main():
+    global returnQueue
     p.init()
     screen = p.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT))
     clock = p.time.Clock()
@@ -55,6 +57,9 @@ def main():
     playerOne = True  # If a human is playing white, then this will be true. If an AI is playing then this will be
     # False.
     playerTwo = False  # Same as above  but for black
+    AIThinking = False
+    moveFinderProcess = None
+    moveUndone = False
     moveLogFont = p.font.SysFont("Arial", 14, False, False)
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
@@ -64,7 +69,7 @@ def main():
                 running = False
             # mouse handler
             elif e.type == p.MOUSEBUTTONDOWN:
-                if not gameOver and humanTurn:
+                if not gameOver:
                     location = p.mouse.get_pos()  # (x,y) location of the mouse
                     col = location[0] // SQ_SIZE
                     row = location[1] // SQ_SIZE
@@ -76,7 +81,8 @@ def main():
                         sqSelected = (row, col)
                         playerClicks.append(sqSelected)
 
-                    if len(playerClicks) == 2:  # after second click
+                    if len(playerClicks) == 2 and humanTurn:  # after second click
+
                         move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                         print(move.getChessNotation())
                         for i in range(len(validMoves)):
@@ -96,6 +102,11 @@ def main():
                     moveMade = True
                     animate = False
                     gameOver = False
+                    if AIThinking:
+                        moveFinderProcess.terminate()
+                        AIThinking = False
+                    moveUndone = True
+
                 if e.key == p.K_r:  # reset the board when r is pressed
                     gs = ChessEngine.GameState()
                     validMoves = gs.getValidMoves()
@@ -104,17 +115,31 @@ def main():
                     moveMade = False
                     animate = False
                     gameOver = False
+                    if AIThinking:
+                        moveFinderProcess.terminate()
+                        AIThinking = False
+                    moveUndone = True
+
 
         # AI move finder
-        if not gameOver and not humanTurn:
-            AIMove = SmartMoveFinder.findBestMove(gs, validMoves)
-            if AIMove is None:
-                print("Calling a random move")
-                AIMove = SmartMoveFinder.findRandomMove(validMoves)
+        if not gameOver and not humanTurn and not moveUndone:
+            if not AIThinking:
+                AIThinking = True
+                print("thinking....")
+                returnQueue = Queue()  # used to pass data between threads
+                moveFinderProcess = Process(target=SmartMoveFinder.findBestMove, args=(gs, validMoves, returnQueue))
+                moveFinderProcess.start()  # This will call findBestMove(gs, validMoves, returnQueue)
 
-            gs.makeMove(AIMove)
-            moveMade = True
-            animate = True
+            if not moveFinderProcess.is_alive():
+                print("done thinking")
+                AIMove = returnQueue.get()
+                if AIMove is None:
+                    print("Calling a random move")
+                    AIMove = SmartMoveFinder.findRandomMove(validMoves)
+                gs.makeMove(AIMove)
+                moveMade = True
+                animate = True
+                AIThinking = False
 
         if moveMade:
             if animate:
@@ -122,6 +147,7 @@ def main():
             validMoves = gs.getValidMoves()
             moveMade = False
             animate = False
+            moveUndone = False
 
         drawGameState(screen, gs, validMoves, sqSelected, moveLogFont)
         if gs.checkmate or gs.stalemate:
@@ -207,7 +233,7 @@ def drawMoveLog(screen, gs, font):
     moveLog = gs.moveLog
     moveTexts = []
     for i in range(0, len(moveLog), 2):
-        moveString = str(i//2 + 1) + ". " + str(moveLog[i]) + " "
+        moveString = str(i // 2 + 1) + ". " + str(moveLog[i]) + " "
         if i + 1 < len(moveLog):  # make sure black made a move
             moveString += str(moveLog[i + 1])
         moveTexts.append(moveString)
